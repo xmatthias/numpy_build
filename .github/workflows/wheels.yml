@@ -1,0 +1,53 @@
+
+name: Wheels
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to build'
+        required: true
+        default: '2.3.2'
+
+env:
+  CIBW_BEFORE_BUILD: pip install -U setuptools Cython wheel meson-python ninja
+  CIBW_TEST_REQUIRES: pytest
+
+jobs:
+
+  build_linux_armv7:
+    name: Build Linux armv7 wheels
+    strategy:
+      matrix:
+        os: ["ubuntu-24.04"]
+        python: ["cp311", ] # "cp312", "cp313", "cp313t", "cp314",]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          repository: numpy/numpy
+          ref: ${{ github.event.inputs.version }}
+          submodules: true
+          persist-credentials: false
+
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: all
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.23.3
+        env:
+          CIBW_BUILD: ${{ matrix.python }}-*
+          CIBW_ARCHS_LINUX: armv7l
+
+      - name: Upload wheels
+        uses: actions/upload-artifact@v4
+        with:
+          path: ./wheelhouse/*.whl
+          name: "numpy-${{ github.ref_name }}-linux_armv7"
+
