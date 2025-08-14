@@ -12,7 +12,7 @@ on:
         default: '2.3.2'
 
 env:
-  CIBW_BEFORE_BUILD: pip install -U setuptools Cython wheel meson-python ninja
+  CIBW_BEFORE_BUILD: apt-get update && apt-get install libopenblas-dev -y && pip install -U setuptools Cython wheel meson-python ninja
   CIBW_TEST_REQUIRES: pytest
 
 jobs:
